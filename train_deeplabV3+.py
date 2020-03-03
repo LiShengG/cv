@@ -100,16 +100,15 @@ net = torchvision.models.segmentation.deeplabv3_resnet50()  # 这里直接调用
 
 # ------------------------------------ step 3/5 : 定义损失函数和优化器,准确率 ------------------------------------
 
-# 语义分割损失函数
+# 语义分割损失函数，这里采用的是预测与真实值的交集占两者合集的比例
 
 def dice_loss (y_pred ,y_true, smooth=1):
     mean_loss = 0
     for i in range(y_pred.size(-1)):
-        intersection = torch.sum( y_true[:,:,:,i] * y_pred[:,:,:,i] )
-        union = torch.sum(y_true[:,:,:,i] ) + torch.sum(y_pred[:,:,:,i] )
+        intersection = torch.sum( y_true[:,:,:,i] * y_pred[:,:,:,i] )  # 两者交集
+        union = torch.sum(y_true[:,:,:,i] ) + torch.sum(y_pred[:,:,:,i] ) # 两者合集
     mean_loss += (2. * intersection +smooth)/(union + smooth)
-    return  1-torch.mean(mean_loss, axis=0)
-
+    return  1-torch.mean(mean_loss, axis=0）
 
 optimizer = optim.SGD(net.parameters(), lr=lr_init, momentum=0.9, dampening=0.1)    # 选择优化器
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
@@ -126,20 +125,20 @@ for epoch in range(1):
         inputs, target = data
         inputs, target = Variable(inputs), Variable(target)
 
-        optimizer.zero_grad()
-        outputs = net(inputs)
+        optimizer.zero_grad()    #清空梯度
+        outputs = net(inputs)    # 前向传播
 #        print("outputs.size={}".format(outputs['out'].size()))
 
-        loss = dice_loss( outputs['out'], target)
+        loss = dice_loss( outputs['out'], target) # 计算损失
         print("loss={}".format(loss))
-        loss.backward()
-        optimizer.step()
+        loss.backward()   # 反向传播
+        optimizer.step()。 #  更新参数
         
-        predicted = torch.argmax(outputs['out'],dim=1)   
-        target = target*255
-        target = torch.round(target.squeeze())
+        predicted = torch.argmax(outputs['out'],dim=1)   # 取出类别概率最高的类
+        target = target*255       # voc数据标签类别共21类，将其标签值设为0到20的整数
+        target = torch.round(target.squeeze())。  # 四舍五入
 
-        correct += (predicted == target).squeeze().sum().numpy()
+        correct += (predicted == target).squeeze().sum().numpy()   #统计正确分类的像素点个数
         total += target.numel()
         print("correct={}".format(correct))
 
