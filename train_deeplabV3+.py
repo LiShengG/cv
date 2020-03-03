@@ -22,41 +22,42 @@ lr_init = 0.001
 max_epoch = 5
 
 
-class VOCSegmentation(Dataset):
+# 根据传入地址从硬盘里提取图像数据和标签数据，基本上所有的提取数据的类操作都继承torch库里面的Dataset类：from torch.utils.data import Dataset
+class VOCSegmentation(Dataset): 
     """`Pascal VOC <http://host.robots.ox.ac.uk/pascal/VOC/>`_ Segmentation Dataset.
     """
-    def __init__(self, root ,transform=None, target_transform=None):
+    def __init__(self, root ,transform=None, target_transform=None):   # 类的初始化操作函数，包含三个参数。root是传入的地址，transform是图像的变换操作，默认为没有
         super(VOCSegmentation, self).__init__()
         self.root = root 
         self.transform = transform
-        voc_root = os.path.join(self.root ,"VOCdevkit", "VOC2012")
-        image_dir = os.path.join(voc_root, 'JPEGImages')
-        mask_dir = os.path.join(voc_root, 'SegmentationClass')
+        voc_root = os.path.join(self.root ,"VOCdevkit", "VOC2012")    # os.path.join地址拼接函数，在传入的地址下面有一个名叫“VOCdevkit”的文件夹，在“VOCdevkit”里面有名叫"VOC2012"的文件夹      
+        image_dir = os.path.join(voc_root, 'JPEGImages')      # voc_root目录下的'JPEGImages'，里面是原图像
+        mask_dir = os.path.join(voc_root, voc_root目录下的)  # voc_root目录下的voc_root目录下的，里面存放的是分割后的标签
 
-        if not os.path.isdir(voc_root):
+        if not os.path.isdir(voc_root): 
             raise RuntimeError('Dataset not found or corrupted.' +
                                ' You can use download=True to download it')
 
-        splits_dir = os.path.join(voc_root, 'ImageSets/Segmentation')
+        splits_dir = os.path.join(voc_root, 'ImageSets/Segmentation')   # 里面存放的是图片地址索引
 
-        split_f = os.path.join(splits_dir, 'train.txt')
+        split_f = os.path.join(splits_dir, 'train.txt')     # 训练集的地址索引
 
         with open(os.path.join(split_f), "r") as f:
-            file_names = [x.strip() for x in f.readlines()]
+            file_names = [x.strip() for x in f.readlines()] 
 
-        self.images = [os.path.join(image_dir, x + ".jpg") for x in file_names]
-        self.masks = [os.path.join(mask_dir, x + ".png") for x in file_names]
+        self.images = [os.path.join(image_dir, x + ".jpg") for x in file_names]     # 将txt文件里的原图片名字加上。'.jpg'后缀，self.images是一个列表
+        self.masks = [os.path.join(mask_dir, x + ".png") for x in file_names]   # 将txt文件里的标签图片名字加上。'.jpg'后缀，self.images是一个列表
         assert (len(self.images) == len(self.masks))
 
-    def __getitem__(self, index):
+    def __getitem__(self, index):    # 这个函数是Dataset包含的固有的，根据index索引返回图片矩阵数据
         """
         Args:
             index (int): Index
         Returns:
             tuple: (image, target) where target is the image segmentation.
         """
-        img = Image.open(self.images[index]).convert('RGB')
-        target = Image.open(self.masks[index])
+        img = Image.open(self.images[index]).convert('RGB')     # 打开原图片数据
+        target = Image.open(self.masks[index])              # 打开标签图像数据
         
         if self.transform is not None:
             img = self.transform(img)
@@ -65,7 +66,7 @@ class VOCSegmentation(Dataset):
         return img, target
 
     def __len__(self):
-        return len(self.images)
+        return len(self.images)       # 返回图像和标签
     
     
 
@@ -73,27 +74,27 @@ class VOCSegmentation(Dataset):
 # ------------------------------------ step 1/5 : 加载数据------------------------------------
 
 # 数据预处理设置
-normMean = [0.4948052, 0.48568845, 0.44682974]
-normStd = [0.24580306, 0.24236229, 0.2603115]
-normTransform = transforms.Normalize(normMean, normStd)
+normMean = [0.4948052, 0.48568845, 0.44682974]     # 数据预处理，三通道均值
+normStd = [0.24580306, 0.24236229, 0.2603115]      # 数据预处理 ，三通道方差 
+normTransform = transforms.Normalize(normMean, normStd)   # 标准化处理
 trainTransform = transforms.Compose([
-    transforms.Resize(32),
-    transforms.RandomCrop(32, padding=4),
-    transforms.ToTensor(),
+    transforms.Resize(32),  # 重置图像分辨率
+    transforms.RandomCrop(32, padding=4),    # 随机剪裁
+    transforms.ToTensor(),  # 将图像数据转换为张量
 #    transforms.Lambda(lambda x: x.repeat(3,1,1)),
 #    normTransform
 ])
 
 
 # 构建MyDataset实例
-train_txt_path = os.path.join("..", "..", "Data")
-train_data = VOCSegmentation(root=train_txt_path, transform=trainTransform)
-train_loader = DataLoader(dataset=train_data, batch_size=train_bs, shuffle=True)
+train_txt_path = os.path.join("..", "..", "Data")   # 这是我们数据的存放地址
+train_data = VOCSegmentation(root=train_txt_path, transform=trainTransform)     # 实例化数据提取器，提取器是根据txt文件读取图像内存数据
+train_loader = DataLoader(dataset=train_data, batch_size=train_bs, shuffle=True) # 实例化数据加载器，加载器是从提取器里加载到内存
 
 
 # ------------------------------------ step 2/5 : 定义网络------------------------------------
 
-net = torchvision.models.segmentation.deeplabv3_resnet50()
+net = torchvision.models.segmentation.deeplabv3_resnet50()  # 这里直接调用的torchvision里的deeplab
 #net=net.cuda()
 
 
