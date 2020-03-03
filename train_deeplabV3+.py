@@ -16,10 +16,10 @@ import matplotlib.pyplot as plt
 
 train_txt_path = os.path.join("..", "..", "Data")   #地址拼接符号os.path.join
 
-train_bs = 4
+train_bs = 4  # 每次训练图片数
 valid_bs = 16
 lr_init = 0.001
-max_epoch = 5
+max_epoch = 5    # 训练遍历数据集次数
 
 
 # 根据传入地址从硬盘里提取图像数据和标签数据，基本上所有的提取数据的类操作都继承torch库里面的Dataset类：from torch.utils.data import Dataset
