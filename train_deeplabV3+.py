@@ -91,14 +91,12 @@ train_loader = DataLoader(dataset=train_data, batch_size=train_bs, shuffle=True)
 
 # ------------------------------------ step 2/5 : 定义网络------------------------------------
 
-net = torchvision.models.segmentation.deeplabv3_resnet50()  # 这里直接调用的torchvision里的deeplab
+net = torchvision.models.segmentation.deeplabv3_resnet50()  # 这里直接调用的torchvision里的deeplab3_resnet50()。以resnet作为特征提取的主干网络，使用ASPP获取空间信息
 #net=net.cuda()
-
 
 # ------------------------------------ step 3/5 : 定义损失函数和优化器,准确率 ------------------------------------
 
 # 语义分割损失函数，这里采用的是预测与真实值的交集占两者合集的比例
-
 def dice_loss (y_pred ,y_true, smooth=1):
     mean_loss = 0
     for i in range(y_pred.size(-1)):
@@ -110,8 +108,8 @@ def dice_loss (y_pred ,y_true, smooth=1):
 optimizer = optim.SGD(net.parameters(), lr=lr_init, momentum=0.9, dampening=0.1)    # 选择优化器
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)     # 设置学习率下降策略
 
+ # 开始训练网络                        
 for epoch in range(1):
-
     print('Start Training!')
     loss_sigma = 0.0    # 记录一个epoch的loss之和
     correct = 0.0       # 预测正确的像素点个数
