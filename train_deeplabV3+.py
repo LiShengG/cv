@@ -32,7 +32,7 @@ class VOCSegmentation(Dataset):
         self.transform = transform
         voc_root = os.path.join(self.root ,"VOCdevkit", "VOC2012")    # os.path.join地址拼接函数，在传入的地址下面有一个名叫“VOCdevkit”的文件夹，在“VOCdevkit”里面有名叫"VOC2012"的文件夹      
         image_dir = os.path.join(voc_root, 'JPEGImages')      # voc_root目录下的'JPEGImages'，里面是原图像
-        mask_dir = os.path.join(voc_root, voc_root目录下的)  # voc_root目录下的voc_root目录下的，里面存放的是分割后的标签
+        mask_dir = os.path.join(voc_root, 'SegmentationClass')  # voc_root目录下的voc_root目录下的，里面存放的是分割后的标签
 
         if not os.path.isdir(voc_root): 
             raise RuntimeError('Dataset not found or corrupted.' +
