@@ -152,7 +152,7 @@ class ResNet(nn.Module):
                 norm_layer(planes * block.expansion),
             )
 
-        layers = []
+        layers = []         # 
         layers.append(block(self.inplanes, planes, stride, downsample, self.groups,
                             self.base_width, norm_layer))
         self.inplanes = planes * block.expansion
@@ -256,7 +256,6 @@ scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1) 
 
 # ------------------------------------ step 4/5 : 训练 --------------------------------------------------
 
-
 for epoch in range(max_epoch):
 
     loss_sigma = 0.0    # 记录一个epoch的loss之和
@@ -292,6 +291,6 @@ for epoch in range(max_epoch):
 
 print('Finished Training')
 
-# # ------------------------------------ step5: 保存模型 并且绘制混淆矩阵图 ------------------------------------
+# # ------------------------------------ step5: 保存模型  ------------------------------------
 net_save_path = os.path.join(".", 'ResNet_params.pkl')
 torch.save(net.state_dict(), net_save_path)
