@@ -66,11 +66,8 @@ class VOCSegmentation(Dataset):
         return img, target
 
     def __len__(self):
-        return len(self.images)       # 返回图像和标签
+        return len(self.images)       # 返回数据集的长度
     
-    
-
-
 # ------------------------------------ step 1/5 : 加载数据------------------------------------
 
 # 数据预处理设置
@@ -78,18 +75,18 @@ normMean = [0.4948052, 0.48568845, 0.44682974]     # 数据预处理，三通道
 normStd = [0.24580306, 0.24236229, 0.2603115]      # 数据预处理 ，三通道方差 
 normTransform = transforms.Normalize(normMean, normStd)   # 标准化处理
 trainTransform = transforms.Compose([
-    transforms.Resize(32),  # 重置图像分辨率
-    transforms.RandomCrop(32, padding=4),    # 随机剪裁
-    transforms.ToTensor(),  # 将图像数据转换为张量
+    transforms.Resize(32),                              # 重置图像分辨率
+    transforms.RandomCrop(32, padding=4),            # 随机剪裁
+    transforms.ToTensor(),                       # 将图像数据转换为张量
 #    transforms.Lambda(lambda x: x.repeat(3,1,1)),
 #    normTransform
 ])
 
 
 # 构建MyDataset实例
-train_txt_path = os.path.join("..", "..", "Data")   # 这是我们数据的存放地址
-train_data = VOCSegmentation(root=train_txt_path, transform=trainTransform)     # 实例化数据提取器，提取器是根据txt文件读取图像内存数据
-train_loader = DataLoader(dataset=train_data, batch_size=train_bs, shuffle=True) # 实例化数据加载器，加载器是从提取器里加载到内存
+train_txt_path = os.path.join("..", "..", "Data")   # 这是我们训练数据的存放地址
+train_data = VOCSegmentation(root=train_txt_path, transform=trainTransform)     # 实例化数据提取器，提取器是根据txt文件读取图像数据
+train_loader = DataLoader(dataset=train_data, batch_size=train_bs, shuffle=True) # 实例化数据加载器，加载器是从提取器里加载到内存，通过对索引的累加达到遍历数据集的作用
 
 
 # ------------------------------------ step 2/5 : 定义网络------------------------------------
@@ -111,46 +108,36 @@ def dice_loss (y_pred ,y_true, smooth=1):
     return  1-torch.mean(mean_loss, axis=0）
 
 optimizer = optim.SGD(net.parameters(), lr=lr_init, momentum=0.9, dampening=0.1)    # 选择优化器
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
-# 设置学习率下降策略
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)     # 设置学习率下降策略
 
 for epoch in range(1):
 
     print('Start Training!')
     loss_sigma = 0.0    # 记录一个epoch的loss之和
-    correct = 0.0
-    total = 0.0
+    correct = 0.0       # 预测正确的像素点个数
+    total = 0.0         # 总共的像素点个数
 
-    for i, data in enumerate(train_loader):
+    for i, data in enumerate(train_loader):     # enumerate与Dataloder类配套使用，遍历图像数据集
         inputs, target = data
         inputs, target = Variable(inputs), Variable(target)
 
-        optimizer.zero_grad()    #清空梯度
+        optimizer.zero_grad()    # 清空梯度
         outputs = net(inputs)    # 前向传播
-#        print("outputs.size={}".format(outputs['out'].size()))
-
         loss = dice_loss( outputs['out'], target) # 计算损失
         print("loss={}".format(loss))
-        loss.backward()   # 反向传播
-        optimizer.step()。 #  更新参数
+        loss.backward()         # 反向传播
+        optimizer.step()        #  更新参数
         
-        predicted = torch.argmax(outputs['out'],dim=1)   # 取出类别概率最高的类
-        target = target*255       # voc数据标签类别共21类，将其标签值设为0到20的整数
-        target = torch.round(target.squeeze())。  # 四舍五入
+        predicted = torch.argmax(outputs['out'],dim=1)      # outputs['out']通道数为21维，分别对应21种分类的概率，取出此次网络推测类别概率最高的类，返回索引值
+        target = target*255                                 # voc数据标签类别共21类，将其标签值设为0到20的整数
+        target = torch.round(target.squeeze())。            # 四舍五入
 
-        correct += (predicted == target).squeeze().sum().numpy()   #统计正确分类的像素点个数
-        total += target.numel()
+        correct += (predicted == target).squeeze().sum().numpy()   # 统计正确分类的像素点个数
+        total += target.numel()                             # torch.numel()返回张量中元素个数，这里返回像素点个数
         print("correct={}".format(correct))
 
-    accurcy = correct/total
+    accurcy = correct/total                # 平均正确率
     print("epoch={}".format(epoch))
-    print("accucy={}".format(accurcy))
+    print("epoch_accucy={}".format(accurcy))
 
         
-
-
-
-
-
-
-
