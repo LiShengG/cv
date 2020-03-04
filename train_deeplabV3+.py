@@ -128,7 +128,7 @@ for epoch in range(1):
         
         predicted = torch.argmax(outputs['out'],dim=1)      # outputs['out']通道数为21维，分别对应21种分类的概率，取出此次网络推测类别概率最高的类，返回索引值
         target = target*255                                 # voc数据标签类别共21类，将其标签值设为0到20的整数
-        target = torch.round(target.squeeze())。            # 四舍五入
+        target = torch.round(target.squeeze())            # 四舍五入
 
         correct += (predicted == target).squeeze().sum().numpy()   # 统计正确分类的像素点个数
         total += target.numel()                             # torch.numel()返回张量中元素个数，这里返回像素点个数
